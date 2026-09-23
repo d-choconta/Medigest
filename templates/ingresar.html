@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGest | Ingresar y Registrarse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estiloingreso.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-plus-circle"></i> MediGest</h1>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Inicio</a>
+            <a href="{{ url_for('funciona') }}">¿Cómo funciona?</a>
+            <a href="{{ url_for('beneficios') }}">Beneficios</a>
+            <a href="{{ url_for('ayuda') }}">Ayuda</a>
+        </nav>
+    </header>
+
+    <!-- ingreso -->
+    <section class="Home">
+        <div class="auth-box-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-messages {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- pestañas login y registro cambio -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="cambiarForm('login')">Iniciar Sesión</button>
+                <button class="auth-tab" onclick="cambiarForm('registro')">Registrarse</button>
+            </div>
+
+            <!-- formulario inicio sesion -->
+            <form id="form-login" class="auth-form active" method="POST">
+                <input type="hidden" name="accion" value="login">
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="correo_login" required placeholder="tucorreo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="password_login" required placeholder="********">
+                </div>
+                <button type="submit" class="btn-auth">Ingresar al Sistema</button>
+            </form>
+
+            <!-- formulario registro -->
+            <form id="form-registro" class="auth-form" method="POST">
+                <input type="hidden" name="accion" value="registrar">
+                
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>Tipo Doc.</label>
+                        <select name="tipo_documento" required>
+                            <option value="CC">CC</option>
+                            <option value="TI">TI</option>
+                            <option value="CE">CE</option>
+                        </select>
+                    </div>
+                    <div style="flex: 2;">
+                        <label>N° Documento</label>
+                        <input type="text" name="numero_documento" required placeholder="Nro de cédula">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombres</label>
+                        <input type="text" name="nombres" required placeholder="Tus nombres">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellidos</label>
+                        <input type="text" name="apellidos" required placeholder="Tus apellidos">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" name="correo" required placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" name="password" required placeholder="Contraseña segura">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono / Celular</label>
+                        <input type="text" name="telefono" placeholder="3001234567">
+                    </div>
+                    <div class="form-group">
+                        <label>EPS a la que pertenece</label>
+                        <select name="eps" required>
+                            <option value="" disabled selected>Selecciona tu EPS</option>
+                            <option value="Sura">Sura</option>
+                            <option value="Sanitas">Sanitas</option>
+                            <option value="Nueva EPS">Nueva EPS</option>
+                            <option value="Compensar">Compensar</option>
+                            <option value="Salud Total">Salud Total</option>
+                            <option value="Famisanar">Famisanar</option>
+                            <option value="Aliansalud">Aliansalud</option>
+                            <option value="Coosalud">Coosalud</option>
+                            <option value="Coosalud">Coomeva</option>
+                            <option value="Mutual Ser">Mutual Ser</option>
+                            <option value="Otra">Otra / Regional</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth" style="margin-top: 15px;">Crear Cuenta de Afiliado</button>
+            </form>
+        </div>
+
+        <img src="{{ url_for('static', filename='img/1.jpeg') }}" alt="Medicamentos y salud">
+    </section>
+
+    <footer class="footer-compacto">
+        <p>&copy; 2026 <strong>MediGest</strong>. Todos los derechos reservados.</p>
+        <div class="footer-links">
+            <a href="{{ url_for('ayuda') }}">Soporte</a>
+            <span>•</span>
+            <a href="#">Contacto: soporte@medigest.com</a>
+        </div>
+    </footer>
+
+    <script>
+        function cambiarForm(tipo) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            const forms = document.querySelectorAll('.auth-form');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            forms.forEach(form => form.classList.remove('active'));
+
+            if (tipo === 'login') {
+                tabs[0].classList.add('active');
+                document.getElementById('form-login').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('form-registro').classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

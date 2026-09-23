@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGest | Menú Principal del Afiliado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilomenu.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-plus-circle"></i> MediGest</h1>
+        <nav class="header-user-nav">
+            <span class="user-welcome-text"><i class="fas fa-user-circle" style="color: #B19CD9;"></i> {{ session.get('nombre_usuario', 'Afiliado') }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Salir</a>
+        </nav>
+    </header>
+
+    <div class="menu-layout">
+        <!-- Menu lado -->
+        <aside class="sidebar">
+            <h3>Menú del Afiliado</h3>
+            <button class="menu-btn active" onclick="mostrarSeccion('inicio', this)">
+                <i class="fas fa-home"></i> Resumen General
+            </button>
+            <button class="menu-btn" onclick="mostrarSeccion('formula', this)">
+                <i class="fas fa-file-medical"></i> 1. Cargar Fórmula
+            </button>
+            <!-- ID A BOTON PARA LLAMARLO DESDE JS -->
+            <button id="btn-disponibilidad" class="menu-btn" onclick="mostrarSeccion('disponibilidad', this, true)">
+                <i class="fas fa-map-marked-alt"></i> 2. Stock y Puntos
+            </button>
+            <button class="menu-btn" onclick="mostrarSeccion('turnos', this)">
+                <i class="fas fa-calendar-check"></i> 3. Agendar Turno
+            </button>
+            <button class="menu-btn" onclick="mostrarSeccion('facturacion', this)">
+                <i class="fas fa-file-invoice-dollar"></i> 4. Facturación / Copagos
+            </button>
+        </aside>
+
+        <!-- Principal -->
+        <main class="main-content">
+            
+            <!-- Inicio -->
+            <section id="inicio" class="section-panel active">
+                <div class="card-box">
+                    <h2>Bienvenido a tu Menú Principal MediGest</h2>
+                    <p>Optimiza la recogida de tus medicamentos autorizados por tu EPS sin filas ni desplazamientos innecesarios. Haz clic en tus tarjetas de resumen para consultar el estado detallado en tiempo real.</p>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-card info-card-interactive" onclick="mostrarSeccionDetalle('detalles-formulas', this)">
+                        <h4>Fórmulas Activas</h4>
+                        <p class="info-value">{{ total_formulas }} Pendientes</p>
+                        <span style="font-size: 12px; color: #B19CD9; font-weight: 600; margin-top: 8px; display: inline-block;">Ver historial y estados <i class="fas fa-arrow-right"></i></span>
+                    </div>
+
+                    <div class="info-card info-card-interactive" onclick="mostrarSeccionDetalle('detalles-turnos', this)">
+                        <h4>Turnos Agendados</h4>
+                        <p class="info-value">{% if total_turnos > 0 %}{{ total_turnos }} Citas{% else %}Ninguno{% endif %}</p>
+                        <span style="font-size: 12px; color: #B19CD9; font-weight: 600; margin-top: 8px; display: inline-block;">Ver mis citas previas <i class="fas fa-arrow-right"></i></span>
+                    </div>
+
+                    <div class="info-card">
+                        <h4>Protección de Datos</h4>
+                        <p style="color: #777; font-size: 13px;">Alineado con la Ley 1581 de 2012.</p>
+                    </div>
+                </div>
+
+                <!-- Sub detalle deformulas -->
+                <div id="detalles-formulas" class="card-box card-detalle" style="display: none; margin-top: 25px;">
+                    <h3><i class="fas fa-file-medical" style="color: #B19CD9;"></i> Historial y Estado de Fórmulas Médicas</h3>
+                    <p style="margin-bottom: 20px;">Listado completo de tus prescripciones cargadas en el sistema:</p>
+                    
+                    {% if todas_formulas %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #f0eaf9; color: #555;">
+                                        <th style="padding: 10px;">ID Fórmula</th>
+                                        <th style="padding: 10px;">Fecha Emisión</th>
+                                        <th style="padding: 10px;">Médico</th>
+                                        <th style="padding: 10px;">Documento</th>
+                                        <th style="padding: 10px;">Estado Actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for f in todas_formulas %}
+                                        <tr style="border-bottom: 1px solid #f9f9f9;">
+                                            <td style="padding: 12px;">#{{ f[0] }}</td>
+                                            <td style="padding: 12px;">{{ f[1] }}</td>
+                                            <td style="padding: 12px;">{{ f[2] }}</td>
+                                            <td style="padding: 12px;"><i class="fas fa-file-pdf" style="color: #e74c3c;"></i> {{ f[4] }}</td>
+                                            <td style="padding: 12px;">
+                                                <span class="stock-badge {% if f[3] == 'Aprobada' %}stock-ok{% else %}stock-zero{% endif %}">
+                                                    {{ f[3] }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: #777; text-align: center; padding: 20px;">No has cargado ninguna fórmula médica todavía.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Sub detalle de turnos -->
+                <div id="detalles-turnos" class="card-box card-detalle" style="display: none; margin-top: 25px;">
+                    <h3><i class="fas fa-calendar-check" style="color: #B19CD9;"></i> Mis Turnos y Citas Agendadas</h3>
+                    <p style="margin-bottom: 20px;">Detalle de tus citas previas para recogida de medicamentos sin filas:</p>
+                    
+                    {% if turnos_agendados_lista %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #f0eaf9; color: #555;">
+                                        <th style="padding: 10px;">Código Turno</th>
+                                        <th style="padding: 10px;">Fecha y Hora Cita</th>
+                                        <th style="padding: 10px;">Punto de Entrega (Sede)</th>
+                                        <th style="padding: 10px;">Fórmula Asociada</th>
+                                        <th style="padding: 10px;">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for t in turnos_agendados_lista %}
+                                        <tr style="border-bottom: 1px solid #f9f9f9;">
+                                            <td style="padding: 12px; font-weight: 600; color: #B19CD9;">{{ t[0] }}</td>
+                                            <td style="padding: 12px;">{{ t[1] }}</td>
+                                            <td style="padding: 12px;">{{ t[3] }}<br><small style="color: #777;">{{ t[4] }}</small></td>
+                                            <td style="padding: 12px;">Fórmula #{{ t[5] }}</td>
+                                            <td style="padding: 12px;">
+                                                <span class="stock-badge stock-ok">{{ t[2] }}</span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: #777; text-align: center; padding: 20px;">No tienes ningún turno agendado actualmente.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Cargar formula -->
+            <section id="formula" class="section-panel">
+                <div class="card-box">
+                    <h2>Carga de Fórmula Médica Autorizada</h2>
+                    <p>Registra los datos de tu prescripción médica y selecciona el medicamento autorizado por tu EPS para iniciar la validación de stock.</p>
+                    
+                    <form action="{{ url_for('registrar_formula') }}" method="POST" enctype="multipart/form-data" class="menu-form">
+                        <div class="form-group">
+                            <label>Médico que formula</label>
+                            <input type="text" name="medico" required placeholder="Nombre del profesional">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de emisión de la fórmula</label>
+                            <input type="date" name="fecha_emision" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Seleccionar Medicamento Recetado (Catálogo EPS)</label>
+                            <select name="id_medicamento" required style="width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; font-family: 'Poppins', sans-serif; background: #fff;">
+                                <option value="" disabled selected>-- Seleccione el medicamento de su fórmula --</option>
+                                {% for med in catalogo_medicamentos %}
+                                    <option value="{{ med[0] }}">{{ med[1] }} - {{ med[2] }} ({{ med[3] }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Archivo de la Fórmula (PDF o Imagen)</label>
+                            <input type="file" name="archivo_formula" required class="file-input">
+                        </div>
+                        <button type="submit" class="btn">Subir y Validar Fórmula</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- consulta de disponibilidad y puntos (mapa e inventario) -->
+            <section id="disponibilidad" class="section-panel">
+                <div class="card-box">
+                    <h2>Puntos de Entrega y Stock en Tiempo Real</h2>
+                    <p>Visualiza en el mapa interactivo las sedes de la EPS y selecciona el punto de entrega que prefieras para agendar tu cita.</p>
+                    
+                    {% if tiene_formula_en_validacion %}
+
+                        <!-- temporizador de aprobacion -->
+                        <div class="placeholder-box" id="alerta-pendiente">
+                            <i class="fas fa-clock placeholder-icon" style="color: #f39c12;"></i>
+                            <h3 style="color: #444; margin-bottom: 5px;">Validación de Fórmula en Proceso por la EPS</h3>
+                            <p>Tu fórmula se encuentra en estado <strong>Pendiente</strong>. El sistema la validará automáticamente en unos segundos...</p>
+                            <div style="margin-top: 15px; font-weight: 600; color: #B19CD9; font-size: 18px;" id="contador-regresivo">10s</div>
+                        </div>
+
+                    {% elif tiene_formulas_aprobadas %}
+
+                        <!-- seleccionar formula -->
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label><i class="fas fa-file-medical" style="color: #B19CD9;"></i> <strong>Selecciona la Fórmula a Consultar:</strong></label>
+                            <select onchange="cambiarFormula(this.value)" class="form-select-custom" style="width: 100%; max-width: 350px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; font-family: inherit; background: #fff; margin-top: 5px;">
+                                {% for form in formulas_aprobadas_lista %}
+                                    <option value="{{ form[0] }}" {% if form[0] == id_formula_seleccionada %}selected{% endif %}>
+                                        Fórmula #{{ form[0] }} - Emitida el {{ form[1] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- selector ciudad -->
+                        <div class="form-group" style="margin: 20px 0;">
+                            <label><i class="fas fa-city" style="color: #B19CD9;"></i> <strong>Filtrar por Ciudad:</strong></label>
+                            <select id="select-ciudad" onchange="cambiarCiudad(this.value)" style="width: 100%; max-width: 350px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; font-family: inherit; background: #fff; margin-top: 5px;">
+                                {% for ciudad in ciudades_lista %}
+                                    <option value="{{ ciudad }}" {% if ciudad == ciudad_seleccionada %}selected{% endif %}>{{ ciudad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- mapa -->
+                        <div id="map" class="map-container"></div>
+
+                        <h3 style="margin: 30px 0 15px; color: #333; font-size: 18px; font-family: 'Montserrat', sans-serif;">Droguerías con Inventario Disponible en {{ ciudad_seleccionada }}</h3>
+
+                        {% if inventario_puntos %}
+                            <div class="stock-grid">
+                                {% for item in inventario_puntos %}
+                                    <div class="stock-card">
+                                        <div>
+                                            <div class="stock-header">
+                                                <h4><i class="fas fa-clinic-medical" style="color: #B19CD9;"></i> {{ item[1] }}</h4>
+                                                <span class="stock-badge {% if item[6] > 0 %}stock-ok{% else %}stock-zero{% endif %}">
+                                                    {% if item[6] > 0 %}Disponible{% else %}Agotado{% endif %}
+                                                </span>
+                                            </div>
+                                            <p class="stock-dir"><i class="fas fa-map-marker-alt" style="color: #B19CD9;"></i> {{ item[2] }} ({{ item[3] }})</p>
+                                            <p class="stock-med"><strong>Medicamento:</strong> {{ item[5] }}</p>
+                                            <p class="stock-qty">Stock actual: <strong>{{ item[6] }} unidades</strong></p>
+                                            <p class="stock-tel"><i class="fas fa-phone-alt"></i> Tel: {{ item[4] }}</p>
+                                        </div>
+
+                                        {% if item[6] > 0 %}
+                                            <button class="btn-seleccionar-sede" onclick="seleccionarSedeParaTurno('{{ item[0] }}')">
+                                                <i class="fas fa-calendar-check"></i> Elegir para Agendar Cita
+                                            </button>
+                                        {% else %}
+                                            <button class="btn-seleccionar-sede" disabled style="background: #f5f5f5; color: #ccc; cursor: not-allowed;">
+                                                Sin Stock Disponible
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="placeholder-box">
+                                <i class="fas fa-info-circle placeholder-icon" style="color: #ccc;"></i>
+                                <p>No hay inventario registrado para este medicamento en esta ciudad.</p>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+
+                        <div class="placeholder-box">
+                            <i class="fas fa-file-medical placeholder-icon" style="color: #ccc;"></i>
+                            <p>No tienes ninguna fórmula médica registrada. Carga una fórmula en la pestaña 1 para comenzar.</p>
+                        </div>
+
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- agendar turno -->
+            <section id="turnos" class="section-panel">
+                <div class="card-box">
+                    <h2>Agendamiento de Cita Previa y Turnos</h2>
+                    <p>Selecciona tu fórmula aprobada, el punto de entrega con stock y la fecha/hora de recogida para reclamar sin hacer filas.</p>
+                    
+                    {% if tiene_formulas_aprobadas %}
+                        <form action="{{ url_for('agendar_turno') }}" method="POST" class="menu-form" style="margin-top: 20px;">
+                            <div class="form-group">
+                                <label>Selecciona tu Fórmula Médica Aprobada</label>
+                                <select name="id_formula" required style="width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; font-family: 'Poppins', sans-serif; background: #fff;">
+                                    <option value="" disabled selected>-- Elige una fórmula aprobada --</option>
+                                    {% for form in formulas_aprobadas_lista %}
+                                        <option value="{{ form[0] }}">Fórmula #{{ form[0] }} - Emitida el {{ form[1] }} (Médico: {{ form[2] }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Selecciona el Punto de Entrega (Sede)</label>
+                                <select name="id_punto" required style="width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; font-family: 'Poppins', sans-serif; background: #fff;">
+                                    <option value="" disabled selected>-- Selecciona droguería o sede --</option>
+                                    {% for punto in puntos_entrega_lista %}
+                                        <option value="{{ punto[0] }}">{{ punto[1] }} - {{ punto[2] }} ({{ punto[3] }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Fecha y Hora para la Recogida <small style="color: #666; font-weight: normal;">(Lun - Vie: 08:00 AM - 05:00 PM)</small></label>
+                                <input type="datetime-local" name="fecha_turno" id="input-fecha-turno" required min="2026-01-01T08:00" max="2026-12-31T17:00" step="1800">
+                                <small id="error-horario" style="color: #e74c3c; display: none; margin-top: 5px; font-weight: 500;">
+                                    <i class="fas fa-exclamation-circle"></i> Solo puedes agendar en horario laboral (Lunes a Viernes de 8:00 AM a 5:00 PM). Los fines de semana no hay servicio.
+                                </small>
+                            </div>
+
+                            <button type="submit" class="btn">Confirmar y Agendar Turno</button>
+                        </form>
+                    {% else %}
+                        <div class="placeholder-box">
+                            <i class="fas fa-calendar-alt placeholder-icon" style="color: #ccc;"></i>
+                            <p>Debes tener al menos una fórmula aprobada por la EPS para poder agendar tu turno de recogida.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- facturas -->
+            <section id="facturacion" class="section-panel">
+                <div class="card-box">
+                    <h2>Facturación y Copagos</h2>
+                    <p>Consulta el valor de tus copagos según las políticas de tu EPS y gestiona el estado de tus pagos de manera segura.</p>
+                    <div class="placeholder-box">
+                        <i class="fas fa-receipt placeholder-icon"></i>
+                        <p>No hay transacciones ni copagos pendientes asociados a tu cuenta.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- LEAFLET JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- -->
+    <script id="datos-puntos" type="application/json">
+        {{ puntos_entrega_lista | tojson | safe }}
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. Lógica del temporizador de aprobación automática (10 segundos)
+            const alertaPendiente = document.getElementById('alerta-pendiente');
+            if (alertaPendiente) {
+                let segundos = 10;
+                const contadorElemento = document.getElementById('contador-regresivo');
+
+                const intervalo = setInterval(() => {
+                    segundos--;
+                    if (contadorElemento) { contadorElemento.textContent = segundos + "s"; }
+
+                    if (segundos <= 0) {
+                        clearInterval(intervalo);
+                        
+                        const idFormulaEval = parseInt("{{ id_formula_en_validacion or id_formula_seleccionada or 0 }}");
+
+                        fetch('/aprobar_formula_automatico', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id_formula: idFormulaEval
+                            })
+                        }).then(response => {
+                            if (response.ok) {
+                                window.location.href = `/menu?formula=${idFormulaEval}&ciudad={{ ciudad_seleccionada }}&seccion=disponibilidad`;
+                            }
+                        });
+                    }
+                }, 1000);
+            }
+
+            // 2. Control estricto de pestañas al cargar por URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('seccion') === 'disponibilidad') {
+                const btnDisponibilidad = document.getElementById('btn-disponibilidad');
+                if (btnDisponibilidad) {
+                    mostrarSeccion('disponibilidad', btnDisponibilidad, true);
+                }
+            }
+        });
+
+        let mapaIniciado = false;
+        let mapInstance = null;
+
+        function cambiarCiudad(ciudadSeleccionada) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const formula = urlParams.get('formula') || "{{ id_formula_seleccionada }}";
+            window.location.href = `/menu?formula=${formula}&ciudad=${encodeURIComponent(ciudadSeleccionada)}&seccion=disponibilidad`;
+        }
+
+        function cambiarFormula(idFormula) {
+            const ciudad = document.getElementById('select-ciudad')?.value || "{{ ciudad_seleccionada }}";
+            window.location.href = `/menu?formula=${idFormula}&ciudad=${encodeURIComponent(ciudad)}&seccion=disponibilidad`;
+        }
+
+        // Apaga todo lo demás antes de activar la sección y su botón
+        function mostrarSeccion(idSeccion, boton, esMapa = false) {
+            const secciones = document.querySelectorAll('.section-panel');
+            secciones.forEach(sec => sec.classList.remove('active'));
+
+            const botones = document.querySelectorAll('.menu-btn');
+            botones.forEach(btn => btn.classList.remove('active'));
+
+            const seccion = document.getElementById(idSeccion);
+            if (seccion) {
+                seccion.classList.add('active');
+            }
+
+            if (boton) {
+                boton.classList.add('active');
+            }
+
+            if (esMapa) {
+                mostrarMapa();
+            }
+        }
+
+        function mostrarMapa() {
+            const mapElement = document.getElementById('map');
+            if (!mapElement) return;
+
+            setTimeout(() => {
+                let latCentro = 4.60971;
+                let lonCentro = -74.08175;
+                const ciudadActual = "{{ ciudad_seleccionada }}";
+
+                if (ciudadActual.includes("Medellín")) { latCentro = 6.2442; lonCentro = -75.5812; }
+                else if (ciudadActual.includes("Cali")) { latCentro = 3.4516; lonCentro = -76.5320; }
+                else if (ciudadActual.includes("Manizales")) { latCentro = 5.0702; lonCentro = -75.5138; }
+                else if (ciudadActual.includes("Barranquilla")) { latCentro = 10.9685; lonCentro = -74.7813; }
+                else if (ciudadActual.includes("Bucaramanga")) { latCentro = 7.1193; lonCentro = -73.1227; }
+
+                if (!mapaIniciado) {
+                    mapInstance = L.map('map').setView([latCentro, lonCentro], 13);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(mapInstance);
+
+                    let puntosRaw = [];
+                    try {
+                        const elementoDatos = document.getElementById('datos-puntos');
+                        if (elementoDatos) {
+                            const jsonText = elementoDatos.textContent.trim();
+                            if (jsonText && jsonText !== "null") {
+                                puntosRaw = JSON.parse(jsonText);
+                            }
+                        }
+                    } catch(e) {
+                        console.error("Error leyendo puntos", e);
+                    }
+
+                    puntosRaw.forEach((punto) => {
+                        const idPunto = punto[0];
+                        const nombre = punto[1];
+                        const dir = punto[2] + " - " + punto[3];
+                        const lat = punto[4] ? parseFloat(punto[4]) : latCentro;
+                        const lon = punto[5] ? parseFloat(punto[5]) : lonCentro;
+
+                        const popupContent = `
+                            <div style="font-family: 'Poppins', sans-serif; text-align: center;">
+                                <b style="color: #333; font-size: 14px;">${nombre}</b><br>
+                                <span style="font-size: 12px; color: #666;">${dir}</span><br>
+                                <span style="color: #27ae60; font-weight: bold; font-size: 12px;">✔ Stock Disponible</span><br><br>
+                                <button onclick="seleccionarSedeParaTurno('${idPunto}')" style="background: #B19CD9; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px;">
+                                    Agendar aquí
+                                </button>
+                            </div>
+                        `;
+
+                        L.marker([lat, lon]).addTo(mapInstance).bindPopup(popupContent);
+                    });
+
+                    mapaIniciado = true;
+                }
+
+                if (mapInstance) {
+                    mapInstance.invalidateSize();
+                    mapInstance.setView([latCentro, lonCentro], 13);
+                }
+            }, 250);
+        }
+
+        function seleccionarSedeParaTurno(idPunto) {
+            const btnTurnos = document.querySelectorAll('.menu-btn')[3]; // Botón de agendar turno
+            mostrarSeccion('turnos', btnTurnos, false);
+
+            const selectPunto = document.querySelector('select[name="id_punto"]');
+            if (selectPunto) {
+                selectPunto.value = idPunto;
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function mostrarSeccionDetalle(idDetalle, tarjeta) {
+            document.getElementById('detalles-formulas').style.display = 'none';
+            document.getElementById('detalles-turnos').style.display = 'none';
+
+            const elementoDetalle = document.getElementById(idDetalle);
+            if (elementoDetalle) {
+                elementoDetalle.style.display = 'block';
+                elementoDetalle.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            const formTurno = document.querySelector('form[action*="agendar_turno"]');
+            const inputFecha = document.getElementById('input-fecha-turno');
+            const errorHorario = document.getElementById('error-horario');
+
+            if (formTurno && inputFecha) {
+                formTurno.addEventListener('submit', function(e) {
+                    const fechaSeleccionada = new Date(inputFecha.value);
+                    const diaSemana = fechaSeleccionada.getDay(); // 0 = Domingo, 6 = Sábado
+                    const hora = fechaSeleccionada.getHours();
+
+                    // Validar si es fin de semana
+                    if (diaSemana === 0 || diaSemana === 6) {
+                        e.preventDefault();
+                        errorHorario.style.display = 'block';
+                        inputFecha.focus();
+                        return;
+                    }
+
+                    // Validar horario laboral
+                    if (hora < 8 || hora >= 17) {
+                        e.preventDefault();
+                        errorHorario.style.display = 'block';
+                        inputFecha.focus();
+                        return;
+                    }
+
+                    errorHorario.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

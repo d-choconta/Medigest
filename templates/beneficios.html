@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGest | Beneficios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilobeneficios.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-plus-circle"></i> MediGest</h1>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Inicio</a>
+            <a href="{{ url_for('funciona') }}">¿Cómo funciona?</a>
+            <a href="{{ url_for('beneficios') }}">Beneficios</a>
+            <a href="{{ url_for('ayuda') }}">Ayuda</a>
+        </nav>
+    </header>
+
+    <section class="beneficios-seccion">
+        <div class="titulo-seccion">
+            <h2>¿Por qué elegir <span>MediGest?</span></h2>
+            <p>Transformamos la experiencia de salud para ofrecerte comodidad, control y eficiencia en cada paso.</p>
+        </div>
+
+        <div class="beneficios-grid">
+            <!-- Fila 1 -->
+            <div class="beneficio-row">
+                <div class="beneficio-icono">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="beneficio-texto">
+                    <h3>Cero Filas y Esperas</h3>
+                    <p>Agenda tu turno de recogida previamente y acércate al punto de entrega solo cuando tu medicamento esté listo para retirar.</p>
+                </div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="beneficio-row">
+                <div class="beneficio-icono">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="beneficio-texto">
+                    <h3>Disponibilidad en Stock</h3>
+                    <p>Valida en tiempo real en qué droguería se encuentra tu fórmula médica antes de gastar tiempo desplazándote.</p>
+                </div>
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="beneficio-row">
+                <div class="beneficio-icono">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="beneficio-texto">
+                    <h3>Decisiones con Datos</h3>
+                    <p>Integra paneles analíticos para optimizar inventarios, prever alta demanda y mejorar la calidad del servicio de la EPS.</p>
+                </div>
+            </div>
+
+            <!-- Fila 4 -->
+            <div class="beneficio-row">
+                <div class="beneficio-icono">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="beneficio-texto">
+                    <h3>Seguridad y Confianza</h3>
+                    <p>Cumplimiento estricto de normativas de protección de datos personales para garantizar la confidencialidad de tu historial.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

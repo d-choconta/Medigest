@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGest | Gestión de Medicamentos</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estiloinicio.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-plus-circle"></i> MediGest</h1>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Inicio</a>
+            <a href="{{ url_for('funciona') }}">¿Cómo funciona?</a>
+            <a href="{{ url_for('beneficios') }}">Beneficios</a>
+            <a href="{{ url_for('ayuda') }}">Ayuda</a>
+        </nav>
+    </header>
+
+    <section class="Home" id="inicio">
+        <div class="text-box">
+            <h1>Tus medicamentos <br><span>sin complicaciones</span></h1>
+            <p><strong>GESTIÓN DE MEDICAMENTOS</strong><br>Consulta la disponibilidad de tus medicamentos, encuentra el punto de entrega y agenda tu turno antes de desplazarte.</p>
+            
+            <button class="btn" type="button" onclick="window.location.href='ingresar'">Ingresar</button>
+        </div>
+        
+        <img src="{{ url_for('static', filename='img/1.jpeg') }}" alt="Medicamentos y salud">
+    </section>
+</body>
+
+
+    <footer class="footer-compacto">
+        <p>&copy; 2026 <strong>MediGest</strong>. Todos los derechos reservados.</p>
+        <div class="footer-links">
+            <a href="{{ url_for('ayuda') }}">Soporte</a>
+            <span>•</span>
+            <a href="#">Contacto: soporte@medigest.com</a>
+        </div>
+    </footer>
+</html>

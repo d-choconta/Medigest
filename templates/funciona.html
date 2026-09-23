@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGest | ¿Cómo funciona?</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilofunciona.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-plus-circle"></i> MediGest</h1>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Inicio</a>
+            <a href="{{ url_for('funciona') }}">¿Cómo funciona?</a>
+            <a href="{{ url_for('beneficios') }}">Beneficios</a>
+            <a href="{{ url_for('ayuda') }}">Ayuda</a>
+        </nav>
+    </header>
+
+
+    <section class="como-funciona" style="min-height: 100vh; padding-top: 150px;">
+        <div class="titulo-seccion">
+            <h2>¿Cómo funciona <span>MediGest?</span></h2>
+            <p>Olvídate de las filas y la incertidumbre. Reclamar tus medicamentos ahora es un proceso rápido y 100% digital.</p>
+        </div>
+
+        <div class="pasos-contenedor">
+            <!-- Paso 1 -->
+            <div class="paso-card">
+                <div class="icono-paso"><i class="fas fa-file-medical"></i></div>
+                <h3>1. Registra tu fórmula</h3>
+                <p>Ingresa a la plataforma y carga la fórmula médica autorizada por tu EPS.</p>
+            </div>
+
+            <!-- Paso 2 -->
+            <div class="paso-card">
+                <div class="icono-paso"><i class="fas fa-search-location"></i></div>
+                <h3>2. Consulta disponibilidad</h3>
+                <p>El sistema valida el stock en tiempo real y te muestra las droguerías con disponibilidad.</p>
+            </div>
+
+            <!-- Paso 3 -->
+            <div class="paso-card">
+                <div class="icono-paso"><i class="fas fa-calendar-check"></i></div>
+                <h3>3. Agenda tu turno</h3>
+                <p>Selecciona el punto de entrega más cercano, elige fecha y hora para tu recogida presencial.</p>
+            </div>
+
+            <!-- Paso 4 -->
+            <div class="paso-card">
+                <div class="icono-paso"><i class="fas fa-pills"></i></div>
+                <h3>4. Reclama sin filas</h3>
+                <p>Recibe una notificación de confirmación, acércate a la farmacia y recibe tu medicamento al instante.</p>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
