@@ -319,15 +319,229 @@
 
             <!-- facturas -->
             <section id="facturacion" class="section-panel">
-                <div class="card-box">
-                    <h2>Facturación y Copagos</h2>
-                    <p>Consulta el valor de tus copagos según las políticas de tu EPS y gestiona el estado de tus pagos de manera segura.</p>
-                    <div class="placeholder-box">
-                        <i class="fas fa-receipt placeholder-icon"></i>
-                        <p>No hay transacciones ni copagos pendientes asociados a tu cuenta.</p>
-                    </div>
-                </div>
-            </section>
+            <div class="card-box">
+        <h2>Facturación y Copagos</h2>
+
+        <p>
+            Consulta los copagos asociados a tus turnos
+            y revisa el estado de tus pagos.
+        </p>
+
+        {% if pagos_lista %}
+
+            {% for pago in pagos_lista %}
+
+            <div class="placeholder-box">
+                <h3>{{ pago[2] }}</h3>
+
+                <p><strong>Turno:</strong> {{ pago[1] }}</p>
+
+                <p>
+                    <strong>Valor del copago:</strong>
+                    ${{ "{:,.0f}".format(pago[3]) }} COP
+                </p>
+
+                <p>
+        <strong>Estado:</strong>
+
+        {% if pago[4] == 'Pagado' %}
+        <span style="color: #218653; font-weight: 600;">
+            <i class="fas fa-check-circle"></i>
+            Pagado
+        </span>
+
+        {% elif pago[4] == 'Pendiente' %}
+        <span style="color: #C58A27; font-weight: 600;">
+            <i class="fas fa-clock"></i>
+            Pendiente
+        </span>
+
+    {% else %}
+        <span>{{ pago[4] }}</span>
+    {% endif %}
+</p>
+
+                <!-- Pago simulado del copago -->
+{% if pago[4] == 'Pendiente' %}
+
+    <form action="{{ url_for('pagar_copago') }}"
+          method="POST"
+          style="margin-top: 20px;">
+
+        <input type="hidden"
+               name="id_pago"
+               value="{{ pago[0] }}">
+
+        <label for="metodo_pago_{{ pago[0] }}">
+            <strong>Selecciona un método de pago:</strong>
+        </label>
+
+        <select name="metodo_pago"
+                id="metodo_pago_{{ pago[0] }}"
+                required
+                style="padding: 12px; margin: 10px 0;
+                       border: 1px solid #B19CD9;
+                       border-radius: 8px; width: 100%;">
+
+            <option value="">-- Selecciona una opción --</option>
+            <option value="PSE">PSE</option>
+            <option value="Tarjeta">Tarjeta de credito o debito</option>
+
+        </select>
+
+       <button type="submit"
+        style="background-color: #B19CD9;
+               color: white;
+               border: none;
+               border-radius: 25px;
+               padding: 14px 30px;
+               font-family: inherit;
+               font-size: 16px;
+               font-weight: 600;
+               cursor: pointer;
+               margin-top: 10px;">
+            <i class="fas fa-credit-card"></i>
+            Pagar ahora
+        </button>
+        </form>
+
+    {% endif %}
+
+                {% if pago[4] == 'Pagado' %}
+                    <p>
+                        <strong>Método de pago:</strong>
+                        {{ pago[5] }}
+                    </p>
+
+                    <p>
+                        <strong>Fecha de pago:</strong>
+                        {{ pago[6].strftime('%d/%m/%Y - %H:%M') if pago[6] else 'Sin fecha registrada' }}
+                    </p>
+
+<!-- Comprobante de pago simulacion -->
+<div class="comprobante-pago"
+     style="background: white;
+            border: 1px solid #B19CD9;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 25px auto 0;
+            max-width: 600px;
+            text-align: left;">
+
+    <!-- Encabezado -->
+    <div style="text-align: center;
+                background: #f0eaf9;
+                border-radius: 12px;
+                padding: 22px;
+                margin-bottom: 24px;">
+
+        <h3 style="color: #8069B0;
+                   margin: 0 0 8px;">
+            <i class="fas fa-file-invoice"></i>
+            MediGest
+        </h3>
+
+        <p style="font-size: 18px; font-weight: 600;">
+            Comprobante de pago
+        </p>
+
+        <p style="color: #218653; font-weight: 600;">
+            <i class="fas fa-check-circle"></i>
+            Pago realizado
+        </p>
+    </div>
+
+    <!-- Información del comprobante -->
+    <div style="line-height: 2;">
+
+        <p>
+            <strong>Número de comprobante:</strong>
+            MG-{{ pago[0] }}
+        </p>
+
+        <p>
+            <strong>Medicamento:</strong>
+            {{ pago[2] }}
+        </p>
+
+        <p>
+            <strong>Turno:</strong>
+            {{ pago[1] }}
+        </p>
+
+        <p>
+            <strong>Método de pago:</strong>
+            {{ pago[5] }}
+        </p>
+
+        <p>
+            <strong>Fecha de pago:</strong>
+            {{ pago[6].strftime('%d/%m/%Y - %H:%M') if pago[6] else 'Sin fecha registrada' }}
+        </p>
+
+    </div>
+
+    <hr style="border: none;
+               border-top: 1px solid #ddd;
+               margin: 22px 0;">
+
+    <!-- Total pagado -->
+    <div style="display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 15px;">
+
+        <strong>Total pagado</strong>
+
+        <strong style="color: #8069B0;
+                       font-size: 22px;">
+            ${{ "{:,.0f}".format(pago[3]) }} COP
+        </strong>
+
+    </div>
+
+    <!-- Botón de impresión -->
+    <div class="boton-imprimir"
+         style="text-align: center; margin-top: 20px;">
+
+        <button type="button" onclick="imprimirComprobante(this)"
+                style="background: #B19CD9;
+                       color: white;
+                       border: none;
+                       border-radius: 25px;
+                       padding: 12px 25px;
+                       font-family: inherit;
+                       font-size: 14px;
+                       font-weight: 600;
+                       cursor: pointer;">
+
+            <i class="fas fa-print"></i>
+            Imprimir comprobante
+
+        </button>
+
+    </div>
+
+</div>
+                {% endif %}
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="placeholder-box">
+                <i class="fas fa-receipt placeholder-icon"></i>
+                <p>
+                    No hay transacciones ni copagos
+                    asociados a tu cuenta.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </div>
+</section>
 
         </main>
     </div>
@@ -539,5 +753,27 @@
             }
         });
     </script>
+
+<script>
+function imprimirComprobante(boton) {
+    // Identificar el comprobante seleccionado
+    const comprobante = boton.closest('.comprobante-pago');
+
+    if (!comprobante) {
+        alert('No se encontró el comprobante.');
+        return;
+    }
+
+    // Marcar únicamente el comprobante seleccionado
+    comprobante.classList.add('comprobante-a-imprimir');
+
+    // Abrir la ventana de impresión
+    window.print();
+
+    // Quitar la selección después de imprimir
+    comprobante.classList.remove('comprobante-a-imprimir');
+}
+</script>
+
 </body>
 </html>

@@ -17,6 +17,7 @@ def obtener_conexion():
     return conexion
 
 
+
 @app.route('/')
 def inicio():
     return render_template('inicio.html')
@@ -424,6 +425,30 @@ def menu_afiliado():
 
         catalogo_medicamentos = cursor.fetchall()
 
+        # 10. Consultar facturacion del afiliado
+        cursor.execute(
+            """SELECT
+                   fp.id_pago,
+                   st.codigo_turno,
+                   m.nombre_medicamento,
+                   fp.valor_copago,
+                   fp.estado_pago,
+                   fp.metodo_pago,
+                   fp.fecha_pago
+               FROM facturacion_pagos fp
+               JOIN solicitudes_turnos st
+                   ON fp.id_solicitud = st.id_solicitud
+               JOIN formulas_medicas fm
+                   ON st.id_formula = fm.id_formula
+               JOIN medicamentos m
+                   ON st.id_medicamento = m.id_medicamento
+               WHERE fm.id_afiliado = %s
+               ORDER BY fp.id_pago DESC""",
+            (id_afiliado,)
+        )
+
+        pagos_lista = cursor.fetchall()
+
 
     except Exception as e:
 
@@ -442,6 +467,7 @@ def menu_afiliado():
         puntos_entrega_lista = []
         inventario_puntos = []
         catalogo_medicamentos = []
+        pagos_lista = []
 
         print("Error en /menu:", e)
 
@@ -495,8 +521,12 @@ def menu_afiliado():
             inventario_puntos,
 
         catalogo_medicamentos=
-            catalogo_medicamentos
+            catalogo_medicamentos,
+
+        # enviar pagos a la pagina
+        pagos_lista=pagos_lista
     )
+
 
 
 # agend turno
@@ -587,7 +617,7 @@ def agendar_turno():
                 url_for('menu_afiliado')
             )
         
-        # guardar turn
+        # guardar turno
         cursor.execute(
             """INSERT INTO solicitudes_turnos
                (
@@ -608,13 +638,43 @@ def agendar_turno():
                    %s,
                    'Agendado',
                    %s
-               )""",
+               )
+               RETURNING id_solicitud""",
             (
                 id_formula,
                 id_med_relacionado,
                 id_punto,
                 fecha_turno,
                 codigo_turno
+            )
+        )
+
+        # obtener el turno creado
+        id_solicitud = cursor.fetchone()[0]
+
+        # verificar si requiere copago
+        cursor.execute(
+            """SELECT requiere_copago
+               FROM medicamentos
+               WHERE id_medicamento = %s""",
+            (id_med_relacionado,)
+        )
+
+        resultado_copago = cursor.fetchone()
+        requiere_copago = resultado_copago[0] if resultado_copago else False
+
+        # definir valor de prueba
+        valor_copago = 5000 if requiere_copago else 0
+
+        # registrar facturacion
+        cursor.execute(
+            """INSERT INTO facturacion_pagos
+               (id_solicitud, valor_copago, estado_pago)
+               VALUES (%s, %s, %s)""",
+            (
+                id_solicitud,
+                valor_copago,
+                'Pendiente' if requiere_copago else 'No requerido'
             )
         )
 
@@ -813,6 +873,83 @@ def aprobar_formula_automatico():
     finally:
         cursor.close()
         conexion.close()
+
+# Registrar pago simulado
+@app.route('/pagar_copago', methods=['POST'])
+def pagar_copago():
+
+    # Verificar que el afiliado inició sesión
+    if 'id_afiliado' not in session:
+        return redirect(url_for('ingresar'))
+
+    id_afiliado = session['id_afiliado']
+    id_pago = request.form.get('id_pago', type=int)
+    metodo_pago = request.form.get('metodo_pago')
+
+    # Validar los datos recibidos
+    if not id_pago or metodo_pago not in ['PSE', 'Tarjeta']:
+        flash('Datos de pago no válidos.', 'error')
+        return redirect(url_for('menu_afiliado'))
+
+    conexion = None
+    cursor = None
+
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+
+        # Verificar que el copago pertenece al afiliado
+        cursor.execute(
+            """SELECT fp.id_pago
+               FROM facturacion_pagos fp
+               JOIN solicitudes_turnos st
+                   ON fp.id_solicitud = st.id_solicitud
+               JOIN formulas_medicas fm
+                   ON st.id_formula = fm.id_formula
+               WHERE fp.id_pago = %s
+                 AND fm.id_afiliado = %s
+                 AND fp.estado_pago = 'Pendiente'
+                 AND fp.valor_copago > 0
+               FOR UPDATE OF fp""",
+            (id_pago, id_afiliado)
+        )
+
+        pago = cursor.fetchone()
+
+        if not pago:
+            conexion.rollback()
+            flash('El copago no está disponible para pagar.', 'error')
+            return redirect(url_for('menu_afiliado'))
+
+        # Confirmar el pago de prueba
+        cursor.execute(
+            """UPDATE facturacion_pagos
+               SET estado_pago = 'Pagado',
+                   metodo_pago = %s,
+                   fecha_pago = CURRENT_TIMESTAMP
+               WHERE id_pago = %s""",
+            (metodo_pago, id_pago)
+        )
+
+        conexion.commit()
+
+        flash('Pago simulado realizado correctamente.', 'success')
+
+    except Exception as e:
+        if conexion:
+            conexion.rollback()
+
+        print('Error en pago simulado:', e)
+        flash('No se pudo registrar el pago.', 'error')
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conexion:
+            conexion.close()
+
+    return redirect(url_for('menu_afiliado'))
 
 @app.route('/logout')
 def logout():
